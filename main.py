@@ -583,7 +583,7 @@ async def run_as_server():
     
     await mcp.run_async(
         transport="streamable-http", 
-        host="127.0.0.1",
+        host="localhost",
         port=int(server_port),
     )
 
