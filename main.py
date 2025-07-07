@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
+from middleware.auth_middleware import AuthMiddleware
 from services.hyperliquid_services import HyperliquidServices
 
 # Load environment variables
@@ -27,6 +28,9 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastMCP
 mcp = FastMCP("HyperLiquid Trading MCP")
+
+# add auth middleware
+mcp.add_middleware(AuthMiddleware(api_key=os.getenv("SERVER_API_KEY")))
 
 # Global service instance
 hyperliquid_service: Optional[HyperliquidServices] = None
@@ -567,10 +571,20 @@ async def calculate_token_amount_from_dollars(
 
 
 async def run_as_server():
+    # get server API key from environment variable
+    server_api_key = os.getenv("SERVER_API_KEY")
+    if not server_api_key:
+        raise ValueError("SERVER_API_KEY environment variable is not set")
+
+    # get server port from environment variable
+    server_port = os.getenv("PORT")
+    if not server_port:
+        raise ValueError("PORT environment variable is not set")
+    
     await mcp.run_async(
-        transport="http", 
+        transport="streamable-http", 
         host="127.0.0.1",
-        port=8080,
+        port=int(server_port),
     )
 
 def run_standard_server():
